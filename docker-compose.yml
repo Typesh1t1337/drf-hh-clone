@@ -1,0 +1,64 @@
+services:
+  redis:
+    container_name: redis_on_demand
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - default
+  postgres:
+    container_name: postgres_on_demand
+    image: postgres:14
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/data
+    environment:
+      POSTGRES_PASSWORD: root
+      POSTGRES_USER: postgres
+      POSTGRES_DB: ondemand
+    networks:
+      - default
+  backend:
+    container_name: backend
+    build:
+      context: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/usr/src/app
+    ports:
+      - 8001:8000
+    entrypoint: ["sh","/usr/src/app/entrypoint.sh"]
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - default
+
+  celery:
+    container_name: celery_on_demand
+    build:
+      context: .
+    volumes:
+       - .:/usr/src/app/
+    command: celery -A jobondemand worker --loglevel=info
+    entrypoint: ["sh","/usr/src/app/entrypoint.sh"]
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - default
+
+
+volumes:
+  redis_data:
+  postgres_data:
+
+networks:
+  default:
+    driver: bridge
+
+
+
