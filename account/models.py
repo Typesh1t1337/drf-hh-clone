@@ -7,3 +7,4 @@ class User(AbstractUser):
     status = models.CharField(default=False,max_length=20, blank=True,null=True,choices=(('user','User'),('company', 'Company')))
     is_verified = models.BooleanField(default=False)
     cv = models.FileField(upload_to='cvs/%Y/%m/%d/',blank=True,null=True)
+    verification = models.IntegerField(default=0)

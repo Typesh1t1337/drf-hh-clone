@@ -17,6 +17,6 @@ COPY . /usr/src/app/
 
 RUN pip install daphne
 
-CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "jobondemand.asgi:application"]
+CMD ["gunicorn", "-b", "0.0.0.0:8000", "jobondemand.wsgi:application"]
 
 ENTRYPOINT ["/usr/src/app/entrypoint.sh"]

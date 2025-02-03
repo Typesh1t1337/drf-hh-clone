@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm Your Account</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #131517;
+        }
+
+        .email-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #1E1F25;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .header img {
+            width: 150px;
+            margin-bottom: 10px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: #1B70F1;
+            margin: 0;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .content h2 {
+            font-size: 20px;
+            color: #FFFFFF;
+        }
+
+        .content p {
+            font-size: 16px;
+            line-height: 1.5;
+            color: #ADB3BF;
+        }
+
+        .button-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .button {
+            background-color: #1B70F1;
+            color: #FFFFFF;
+            padding: 15px 30px;
+            font-size: 18px;
+            text-decoration: none;
+            border-radius: 5px;
+            display: inline-block;
+        }
+
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 14px;
+            color: #6C6F76;
+        }
+
+        .footer a {
+            color: #1B70F1;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+            <td align="center">
+                <table class="email-container" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td class="header">
+                            <h1>Confirm Your Account</h1>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="content">
+                            <h2>Hello,{{ user}}</h2>
+                            <p>Thank you for registering with <strong>Job on Demand</strong>! To complete your account creation, please confirm your email address by writing the code below to form:</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="button-container">
+                            <a class="button">{{ code }}</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="footer">
+                            <p>If you did not request this, please ignore this email. Your email address will not be used for any other purposes.</p>
+                            <p>&copy; 2025 Job on Demand. All rights reserved.</p>
+                            <p><a href="https://your-privacy-policy-link.com">Privacy Policy</a> | <a href="https://your-terms-of-service-link.com">Terms of Service</a></p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

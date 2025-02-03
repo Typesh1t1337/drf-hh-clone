@@ -1,3 +1,5 @@
+import random
+from .task import send_confirmation_message
 from django.contrib.auth import authenticate
 from django.http import JsonResponse
 from django.middleware import csrf
@@ -56,18 +58,29 @@ class LoginView(APIView):
                 return Response("Password or Username is incorrect", status=status.HTTP_400_BAD_REQUEST)
 
             refresh = RefreshToken.for_user(user)
+            refresh_token = str(refresh)
             access = str(refresh.access_token)
 
             response = JsonResponse({"status": user.status})
 
             response.set_cookie(
-                key='Authorization',
+                key='access',
                 value=access,
                 httponly=True,
                 max_age=36000,
-                samesite="None",
+                samesite="Lax",
                 secure=False,
                 path='/',
+            )
+
+            response.set_cookie(
+                key='refresh',
+                value=refresh_token,
+                httponly=True,
+                max_age=36000,
+                samesite="Lax",
+                secure=False,
+                path='/'
             )
 
 
@@ -89,7 +102,88 @@ class IsAuthenticatedView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        return Response({
+        return Response({"user":
+                             {"status": request.user.status,
+                              "username": request.user.username,
+                              "isVerified": request.user.is_verified,
+                              "email": request.user.email,
+                              }})
+
+
+
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        response = JsonResponse({
             'status': True,
-            'user': request.user,
         })
+
+        response.delete_cookie('access')
+        response.delete_cookie('refresh')
+        return response
+
+
+class AccountVerificationCodeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        code = random.randint(100000, 999999)
+
+        user = request.user
+
+        if user.is_verified:
+            return Response(
+                {
+                    "message": "Account is already verified",
+                }
+            )
+
+        user.verification = code
+        user.save()
+
+        send_confirmation_message.delay(user.email, code)
+
+
+        return Response(
+            {
+                "status": "code successfully sended"
+            }
+        )
+
+
+class VerifyEmailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = VerifyEmailSerializer(data=request.data)
+
+        if serializer.is_valid():
+            code = serializer.validated_data['email']
+
+            user = request.user
+
+            if user.is_verified:
+                return Response(
+                    {
+                        "message": "Account is already verified",
+                    }
+                )
+
+            if user.verification == code:
+                user.is_verified = True
+                user.save()
+
+                return Response(
+                    {
+                        "message": "Account successfully verified",
+                    }
+                )
+            else:
+                return Response(
+                    {
+                        "message": "Account not verified",
+                    }
+                )
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

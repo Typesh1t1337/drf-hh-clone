@@ -23,10 +23,12 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'application.apps.ApplicationConfig',
     'account.apps.AccountConfig',
     'django_filters',
     'corsheaders',
+    'channels',
 
 ]
 
@@ -69,11 +71,11 @@ WSGI_APPLICATION = "jobondemand.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME":"ondemand",
-        "USER":"postgres",
-        "PASSWORD":"root",
-        "HOST":"postgres_on_demand",
-        "PORT":"5432",
+        "NAME": "ondemand",
+        "USER": "postgres",
+        "PASSWORD": "root",
+        "HOST": "postgres_on_demand",
+        "PORT": "5432",
     }
 }
 
@@ -119,13 +121,15 @@ REST_USE_JWT = True
 
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=2),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=2),
     'ALGORITHM': 'HS256',
-    'SIGNING_KEY': SECRET_KEY,
-    'AUTH_HEADER_TYPES': ('Bearer',),
-    'AUTH_COOKIE': "Authorization",
     'AUTH_COOKIE_PATH': '/',
+    "AUTH_COOKIE_SECURE": False,
+    'TOKEN_COOKIE_HTTP_ONLY': True,
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "AUTH_COOKIE_SAMESITE": "Lax",
 }
 
 REST_FRAMEWORK = {
@@ -142,19 +146,48 @@ REST_FRAMEWORK = {
 
 AUTH_USER_MODEL = "account.User"
 
-CELERY_BROKER_URL = 'redis://redis:6379/0'
-CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
+CELERY_BROKER_URL = 'redis://redis_on_demand:6379/0'
+CELERY_RESULT_BACKEND = 'redis://redis_on_demand:6379/0'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 
 
 
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#         'CONFIG': {
+#             "hosts": [("redis_on_demand", 6379)],
+#         },
+#     },
+# }
+
+
+
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
+    "http://127.0.0.1:5173",
 ]
 
-SESSION_COOKIE_HTTPONLY = True
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+    "PUT",
+    "DELETE",
+    "PATCH",
+    "OPTIONS",
+]
+
 CORS_ALLOW_CREDENTIALS = True
-CSRF_COOKIE_NAME = "csrf_token"
-CSRF_TRUSTED_ORIGINS = ["http://localhost:5173"]
-CSRF_COOKIE_HTTPONLY = False
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = "offerkz.codesender@gmail.com"
+EMAIL_HOST_PASSWORD = "unra xahx pnzv jgrx"

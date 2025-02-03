@@ -59,3 +59,7 @@ class RegisterUserSerializer(serializers.ModelSerializer):
             'refresh': str(refresh_token),
             'access': str(refresh_token.access_token),
         }
+
+
+class VerifyEmailSerializer(serializers.Serializer):
+    email = serializers.EmailField(max_length=6)
