@@ -8,3 +8,4 @@ class User(AbstractUser):
     is_verified = models.BooleanField(default=False)
     cv = models.FileField(upload_to='cvs/%Y/%m/%d/',blank=True,null=True)
     verification = models.IntegerField(default=0)
+    last_verification = models.DateTimeField(null=True,blank=True)

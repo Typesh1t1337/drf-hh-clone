@@ -28,7 +28,7 @@ INSTALLED_APPS = [
     'account.apps.AccountConfig',
     'django_filters',
     'corsheaders',
-    'channels',
+    'django_celery_results',
 
 ]
 
@@ -150,6 +150,7 @@ CELERY_BROKER_URL = 'redis://redis_on_demand:6379/0'
 CELERY_RESULT_BACKEND = 'redis://redis_on_demand:6379/0'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
 
 
 

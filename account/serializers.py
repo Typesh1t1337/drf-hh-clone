@@ -10,7 +10,7 @@ class LoginSerializer(serializers.Serializer):
 class RegisterCompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
-        fields = ('email', 'password', 'username', 'status')
+        fields = ('email', 'password', 'username', 'first_name', 'last_name', 'status')
         extra_kwargs = {'password': {'write_only': True,
                                      'min_length': 5}}
 
@@ -19,6 +19,8 @@ class RegisterCompanySerializer(serializers.ModelSerializer):
         user = get_user_model().objects.create_user(
             username=validated_data['username'],
             email=validated_data['email'],
+            first_name=validated_data['first_name'],
+            last_name=validated_data['last_name'],
             status="Company"
         )
 
@@ -37,7 +39,7 @@ class RegisterCompanySerializer(serializers.ModelSerializer):
 class RegisterUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
-        fields = ('email', 'password', 'username', 'status')
+        fields = ('email', 'password', 'username', 'status','first_name', 'last_name')
 
 
     def create(self,validated_data):
@@ -45,6 +47,8 @@ class RegisterUserSerializer(serializers.ModelSerializer):
             username=validated_data['username'],
             email=validated_data['email'],
             password=validated_data['password'],
+            first_name=validated_data['first_name'],
+            last_name=validated_data['last_name'],
             status="User"
         )
 
@@ -52,7 +56,7 @@ class RegisterUserSerializer(serializers.ModelSerializer):
 
         return user
 
-    def get_token(self,user):
+    def get_token(self,user) -> dict:
         refresh_token = RefreshToken.for_user(user)
 
         return {
@@ -62,4 +66,4 @@ class RegisterUserSerializer(serializers.ModelSerializer):
 
 
 class VerifyEmailSerializer(serializers.Serializer):
-    email = serializers.EmailField(max_length=6)
+    code = serializers.IntegerField()

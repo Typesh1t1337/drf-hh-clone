@@ -15,8 +15,8 @@ RUN chmod +x /usr/src/app/entrypoint.sh
 
 COPY . /usr/src/app/
 
-RUN pip install daphne
+#RUN pip install daphne
 
-CMD ["gunicorn", "-b", "0.0.0.0:8000", "jobondemand.wsgi:application"]
+CMD ["gunicorn", "jobondemand.wsgi:application", "--bind", "0.0.0.0:8000"]
 
 ENTRYPOINT ["/usr/src/app/entrypoint.sh"]
