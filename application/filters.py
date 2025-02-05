@@ -8,3 +8,6 @@ class JobFilter(django_filters.FilterSet):
     location = django_filters.CharFilter(field_name='location__name', lookup_expr='icontains',label="Search Location by Name")
     category = django_filters.CharFilter(field_name='category__name', lookup_expr='icontains', label="Search Categories")
 
+
+class ApplyFilter(django_filters.FilterSet):
+    status = django_filters.CharFilter(field_name='status', lookup_expr='icontains', label="Search Status")

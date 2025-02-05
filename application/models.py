@@ -13,13 +13,20 @@ class Job(models.Model):
 
 
 
-class Assignment(models.Model):
-    status = models.CharField(max_length=100)
-    job = models.ForeignKey(Job, on_delete=models.CASCADE)
-
-
 class Categories(models.Model):
     name = models.CharField(max_length=100)
 
 class Cities(models.Model):
     name = models.CharField(max_length=100)
+
+
+class Assignments(models.Model):
+    status = models.CharField(max_length=100,choices=[('Applied','Applied'), ('Approved', 'approved'), ('Rejected', 'rejected')])
+    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE,related_name='user_assignments')
+    job = models.ForeignKey(Job, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('user', 'job')
+
+
+
