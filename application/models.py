@@ -4,9 +4,9 @@ from django.db import models
 class Job(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField()
-    location = models.ForeignKey("Cities",null=True,on_delete=models.SET_NULL)
+    location = models.ForeignKey("Cities", null=True,on_delete=models.SET_NULL)
     company = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
-    category = models.ForeignKey('Categories',on_delete=models.CASCADE,null=True)
+    category = models.ForeignKey('Categories', on_delete=models.CASCADE, null=True)
     salary = models.IntegerField(null=True)
     created_at = models.DateTimeField(auto_now_add=True,null=True)
 

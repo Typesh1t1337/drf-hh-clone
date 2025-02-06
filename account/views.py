@@ -64,6 +64,7 @@ class RegisterUserView(APIView):
             user = serializer.save()
             token = serializer.get_token(user)
 
+
             response = Response({
                 "user": user.status
             })
@@ -105,7 +106,9 @@ class LoginView(APIView):
             user = auth_authenticate(request, username=username, password=password)
 
             if user is None:
-                return Response(f"Password or Username is incorrect", status=status.HTTP_400_BAD_REQUEST)
+                return Response({
+                    'message': 'Invalid username or password',
+                }, status=status.HTTP_401_UNAUTHORIZED)
 
 
             refresh = RefreshToken.for_user(user)

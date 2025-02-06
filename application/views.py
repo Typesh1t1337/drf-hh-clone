@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.shortcuts import render
 from rest_framework import filters, status
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
@@ -21,16 +20,24 @@ class CreateJobView(APIView):
         if user.status != "Company":
             return Response({
                 "error": "User is not a company"
-            })
+            }, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = JobSerializer(data=request.data)
+        serializer = JobCreateSerializer(data=request.data)
 
         if serializer.is_valid():
-            serializer.save(user=user)
+            job = Job.objects.create(
+                company=user,
+                salary=serializer.validated_data['salary'],
+                description=serializer.validated_data['description'],
+                location=serializer.validated_data['location'],
+                category=serializer.validated_data['category'],
+                title=serializer.validated_data['title'],
+            )
 
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        return Response(serializer.errors, status=400)
+
+        return Response(serializer.errors, status=status.HTTP_404_NOT_FOUND)
 
 
 
@@ -174,4 +181,5 @@ class RetrieveAllAppliesView(generics.ListAPIView):
 
     def get_queryset(self):
         return Assignments.objects.filter(user=self.request.user)
+
 

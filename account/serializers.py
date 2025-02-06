@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
-from rest_framework import serializers
+from rest_framework import serializers, status
+from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
@@ -16,6 +17,19 @@ class RegisterCompanySerializer(serializers.ModelSerializer):
 
 
     def create(self, validated_data):
+
+        if get_user_model().objects.filter(email=validated_data['email']).exists():
+            return Response(
+                {'error': 'Email already registered'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        if get_user_model().objects.filter(username=validated_data['username']).exists():
+            return Response(
+                {'error': 'Username already registered'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
         user = get_user_model().objects.create_user(
             username=validated_data['username'],
             email=validated_data['email'],
@@ -43,6 +57,19 @@ class RegisterUserSerializer(serializers.ModelSerializer):
 
 
     def create(self,validated_data):
+
+        if get_user_model().objects.filter(email=validated_data['email']).exists():
+            return Response(
+                {'error': 'Email already registered'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        if get_user_model().objects.filter(username=validated_data['username']).exists():
+            return Response(
+                {'error': 'Username already registered'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
         user = get_user_model().objects.create_user(
             username=validated_data['username'],
             email=validated_data['email'],

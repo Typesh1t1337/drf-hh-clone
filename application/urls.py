@@ -11,4 +11,5 @@ urlpatterns = [
     path('job/info/<int:job_id>/',JobInfoView.as_view()),
     path('job/similar/<int:job_id>/',SimilarJobView.as_view()),
     path('job/applies/',RetrieveAllAppliesView.as_view(), name='job_applies'),
+    path('job/create/,',CreateJobView.as_view(), name='job_create'),
 ]
