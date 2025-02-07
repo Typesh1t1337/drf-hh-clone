@@ -8,8 +8,8 @@ class Job(models.Model):
     company = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     category = models.ForeignKey('Categories', on_delete=models.CASCADE, null=True)
     salary = models.IntegerField(null=True)
-    created_at = models.DateTimeField(auto_now_add=True,null=True)
 
+    created_at = models.DateTimeField(auto_now_add=True,null=True)
 
 
 
@@ -24,6 +24,7 @@ class Assignments(models.Model):
     status = models.CharField(max_length=100,choices=[('Applied','Applied'), ('Approved', 'approved'), ('Rejected', 'rejected')])
     user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE,related_name='user_assignments')
     job = models.ForeignKey(Job, on_delete=models.CASCADE)
+    company = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, null=True,related_name='companies')
 
     class Meta:
         unique_together = ('user', 'job')

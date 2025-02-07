@@ -44,10 +44,11 @@ class ListAllCategoriesSerializer(serializers.ModelSerializer):
 
 class ApplyJobSerializer(serializers.ModelSerializer):
     job_id = serializers.IntegerField()
+    company = serializers.SlugRelatedField(slug_field='username', queryset=get_user_model().objects.all(),required=True)
 
     class Meta:
         model = Assignments
-        fields = ['job_id']
+        fields = ['job_id', 'company']
 
 
 class ApplyJobDetailSerializer(serializers.ModelSerializer):
@@ -59,3 +60,17 @@ class ApplyJobDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Assignments
         fields = ['status', 'job_title', 'job_description', 'job_location', 'job_salary', 'job_id']
+
+
+class AppliedUserDetailSerializer(serializers.ModelSerializer):
+    job_id = serializers.IntegerField()
+    job_title = serializers.CharField(source='job.title')
+    user_username = serializers.CharField(source='user.username')
+    user_email = serializers.CharField(source='user.email')
+
+    class Meta:
+        model = Assignments
+        fields = ['status','job_id', 'job_title', 'user_username', 'user_email']
+
+
+

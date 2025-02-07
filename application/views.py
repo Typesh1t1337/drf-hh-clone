@@ -7,7 +7,6 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from application.filters import JobFilter, ApplyFilter
-from application.models import *
 from application.serializer import *
 
 
@@ -86,11 +85,13 @@ class ApplyJobView(APIView):
 
         if serializer.is_valid():
             job_id = serializer.validated_data['job_id']
+            company = serializer.validated_data['company']
+
 
             try:
                 job = Job.objects.get(pk=job_id)
 
-                is_assign = Assignments.objects.filter(job_id=job_id, user=user,status="Applied").exists()
+                is_assign = Assignments.objects.filter(job_id=job_id, user=user, status="Applied", company=company).exists()
 
                 if is_assign:
                     return Response(
@@ -99,7 +100,7 @@ class ApplyJobView(APIView):
                         }, status=status.HTTP_400_BAD_REQUEST
                     )
 
-                assign = Assignments.objects.create(job=job, user=user, status="Applied")
+                assign = Assignments.objects.create(job=job, user=user, status="Applied", company=company)
 
                 assign.save()
 
@@ -183,3 +184,73 @@ class RetrieveAllAppliesView(generics.ListAPIView):
         return Assignments.objects.filter(user=self.request.user)
 
 
+
+class JobApplyStatusView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request,job_id):
+        if Job.objects.filter(job_id=job_id).exists():
+
+            assign = Assignments.objects.filter(job_id=job_id, user=request.user).exists()
+
+            if assign:
+                assign_status = Assignments.objects.get(job_id=job_id, user=request.user).status
+
+                return Response({
+                    "status": assign_status,
+                },
+                    status=status.HTTP_200_OK)
+
+            else:
+                return Response({
+                    "status": "Not applied",
+                },
+                    status=status.HTTP_200_OK
+                )
+
+        else:
+            return Response({
+                "error": "Job does not exist",
+            },
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+
+class RetrieveAllCompanyAppliesView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    filterset_class = ApplyFilter
+    queryset = Assignments.objects.all()
+    serializer_class = AppliedUserDetailSerializer
+
+    def get_queryset(self, *args, **kwargs):
+        user = self.request.user
+
+
+class RetrieveCompanyVacanciesView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Job.objects.all()
+    serializer_class = ListJobSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        return Job.objects.filter(company=user)
+
+
+class DeleteVacancyView(APIView):
+    permission_classes = [IsAuthenticated]
+    def delete(self, request,job_id):
+        user = request.user
+
+        if Job.objects.filter(pk=job_id,company=user).exists():
+            job = Job.objects.get(pk=job_id)
+            job.delete()
+
+            return Response(
+                {
+                    "message": "Job deleted",
+                },status=status.HTTP_200_OK
+            )
+        else:
+            return Response({
+                "error": "Job does not exist or you dont have access",
+            })

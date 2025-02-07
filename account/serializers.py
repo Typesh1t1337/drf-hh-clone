@@ -35,7 +35,8 @@ class RegisterCompanySerializer(serializers.ModelSerializer):
             email=validated_data['email'],
             first_name=validated_data['first_name'],
             last_name=validated_data['last_name'],
-            status="Company"
+            status="Company",
+            password=validated_data['password']
         )
 
         user.save()
@@ -57,7 +58,6 @@ class RegisterUserSerializer(serializers.ModelSerializer):
 
 
     def create(self,validated_data):
-
         if get_user_model().objects.filter(email=validated_data['email']).exists():
             return Response(
                 {'error': 'Email already registered'},
@@ -76,7 +76,7 @@ class RegisterUserSerializer(serializers.ModelSerializer):
             password=validated_data['password'],
             first_name=validated_data['first_name'],
             last_name=validated_data['last_name'],
-            status="User"
+            status="User",
         )
 
         user.save()

@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'application.apps.ApplicationConfig',
     'account.apps.AccountConfig',
+    'chat.apps.ChatConfig',
     'django_filters',
     'corsheaders',
     'django_celery_results',
@@ -179,6 +180,8 @@ CORS_ALLOW_METHODS = [
     "PUT",
     "DELETE",
 ]
+
+broker_connection_retry_on_startup = True
 
 CORS_ALLOW_CREDENTIALS = True
 

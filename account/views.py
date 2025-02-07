@@ -13,10 +13,10 @@ from .serializers import *
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
+from chat.models import *
 
 class RegisterCompanyVIew(APIView):
     permission_classes = [AllowAny]
-
 
     def post(self,request):
         serializer = RegisterCompanySerializer(data=request.data)
@@ -25,9 +25,14 @@ class RegisterCompanyVIew(APIView):
             user = serializer.save()
             token = serializer.get_token(user)
 
+            #Support always first user, and regular user will be second user only
+            chat = Chat.objects.create(first_user_id=4, second_user=user)
+            chat.save()
+
             response = Response({
                 "user": user.status
             })
+
 
             response.set_cookie(
                 key='access',
@@ -49,6 +54,8 @@ class RegisterCompanyVIew(APIView):
                 path='/'
             )
 
+
+
             return response
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -64,6 +71,9 @@ class RegisterUserView(APIView):
             user = serializer.save()
             token = serializer.get_token(user)
 
+            # Support always first user, and regular user will be second user only
+            chat = Chat.objects.create(first_user_id=4, second_user=user)
+            chat.save()
 
             response = Response({
                 "user": user.status
