@@ -11,4 +11,6 @@ urlpatterns = [
     path('verify/send_code/',AccountVerificationCodeView.as_view()),
     path('verify/email/', VerifyEmailView.as_view()),
     path('logout/', LogoutView.as_view(), name='logout'),
+    path('user/info/<str:username>/',RetrieveUserView.as_view(), name='user_info'),
+    path('company/vacancies/<str:username>/', CompanyVacanciesView.as_view())
 ]

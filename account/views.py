@@ -3,6 +3,7 @@ import random
 from django.contrib.auth import authenticate as auth_authenticate, logout
 from django.utils.timezone import now
 
+from application.models import Job
 from .task import send_confirmation_message
 from django.http import JsonResponse
 from rest_framework import status
@@ -279,3 +280,42 @@ class LogoutAPIView(APIView):
         response.delete_cookie('access')
 
         return response
+
+
+class RetrieveUserView(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request,username):
+        if(get_user_model().objects.filter(username=username).exists()):
+            user = get_user_model().objects.get(username=username)
+
+            serializer = ProfileSerializer(user).data
+
+            return Response(serializer,status=status.HTTP_200_OK)
+        else:
+            return Response({
+                "status": "User does not exist",
+            },status=status.HTTP_404_NOT_FOUND
+            )
+
+
+class CompanyVacanciesView(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request, username):
+        try:
+            company = get_user_model().objects.get(username=username, status='Company')
+        except get_user_model().DoesNotExist:
+            return Response({
+                "status": "User does not exist",
+            },
+                status=status.HTTP_404_NOT_FOUND)
+
+
+        job = Job.objects.filter(company__username=username)
+
+
+        serializer = CompanyVacanciesSerializer(job, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+

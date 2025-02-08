@@ -3,6 +3,8 @@ from rest_framework import serializers, status
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from application.models import Job
+
 
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=20)
@@ -94,3 +96,15 @@ class RegisterUserSerializer(serializers.ModelSerializer):
 
 class VerifyEmailSerializer(serializers.Serializer):
     code = serializers.IntegerField()
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = get_user_model()
+        fields = ('email', 'first_name', 'last_name', 'status', 'username')
+
+
+class CompanyVacanciesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Job
+        fields = ('title','salary', 'location','pk')
