@@ -23,6 +23,8 @@ services:
     networks:
       - default
   backend:
+    env_file:
+      - .env
     container_name: backend
     build:
       context: .

@@ -1,10 +1,12 @@
 import random
 
 from django.contrib.auth import authenticate as auth_authenticate, logout
+from django.core.cache import cache
 from django.utils.timezone import now
+from django.views.decorators.cache import cache_page
 
 from application.models import Job
-from .task import send_confirmation_message
+from .tasks import send_confirmation_message
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.permissions import AllowAny,IsAuthenticated
@@ -167,12 +169,26 @@ class IsAuthenticatedView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        return Response({"user":
-                             {"status": request.user.status,
-                              "username": request.user.username,
-                              "isVerified": request.user.is_verified,
-                              "email": request.user.email,
-                              }})
+        user = request.user
+
+        cache_key = f"user_info_{user.id}"
+        data = cache.get(cache_key)
+
+        if not data:
+            data = {
+                "user": {
+                    "status": user.status,
+                    "username": user.username,
+                    "isVerified": user.is_verified,
+                    "email": user.email,
+                    "first_name" : user.first_name,
+                }
+            }
+
+            cache.set(cache_key, data, 15*60)
+
+
+        return Response(data,  status=status.HTTP_200_OK)
 
 
 

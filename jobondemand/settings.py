@@ -15,6 +15,8 @@ ALLOWED_HOSTS = ["127.0.0.1", "0.0.0.0"]
 
 
 INSTALLED_APPS = [
+    'channels',
+    'daphne',
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -30,7 +32,6 @@ INSTALLED_APPS = [
     'django_filters',
     'corsheaders',
     'django_celery_results',
-
 ]
 
 MIDDLEWARE = [
@@ -63,7 +64,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "jobondemand.wsgi.application"
+ASGI_APPLICATION = "jobondemand.asgi.application"
 
 
 # Database
@@ -136,6 +137,7 @@ SIMPLE_JWT = {
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'account.authenticate.CustomTokenAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
@@ -147,6 +149,7 @@ REST_FRAMEWORK = {
 
 AUTH_USER_MODEL = "account.User"
 
+CELERY_IMPORTS = ("account.tasks", "chat.tasks")
 CELERY_BROKER_URL = 'redis://redis_on_demand:6379/0'
 CELERY_RESULT_BACKEND = 'redis://redis_on_demand:6379/0'
 CELERY_ACCEPT_CONTENT = ['json']
@@ -155,14 +158,16 @@ CELERY_TIMEZONE = TIME_ZONE
 
 
 
-# CHANNEL_LAYERS = {
-#     'default': {
-#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
-#         'CONFIG': {
-#             "hosts": [("redis_on_demand", 6379)],
-#         },
-#     },
-# }
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [("redis_on_demand", 6379)],
+        },
+    },
+}
+
+
 
 
 
@@ -184,6 +189,15 @@ CORS_ALLOW_METHODS = [
 broker_connection_retry_on_startup = True
 
 CORS_ALLOW_CREDENTIALS = True
+
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://redis_on_demand:6379/0",
+    }
+
+}
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
