@@ -8,7 +8,6 @@ class Job(models.Model):
     company = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     category = models.ForeignKey('Categories', on_delete=models.CASCADE, null=True)
     salary = models.IntegerField(null=True)
-
     created_at = models.DateTimeField(auto_now_add=True,null=True)
 
 

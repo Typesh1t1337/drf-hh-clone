@@ -22,4 +22,4 @@ class MessageSerializer(serializers.ModelSerializer):
     receiver = serializers.CharField(read_only=True,source='receiver.username')
     class Meta:
         model = Message
-        fields = ['pk', 'message', 'sender', 'receiver', 'message_date', 'is_read']
+        fields = ['pk', 'message', 'sender', 'receiver', 'message_date', 'is_read','job_link']

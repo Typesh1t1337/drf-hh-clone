@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from dotenv import load_dotenv
 from openai import OpenAI
 import os
-from .models import Message,Chat
+from .models import Message, Chat
 
 @shared_task
 def celery_message_to_support(text:str, first_name:str) -> str:

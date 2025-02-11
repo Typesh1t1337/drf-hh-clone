@@ -149,7 +149,7 @@ REST_FRAMEWORK = {
 
 AUTH_USER_MODEL = "account.User"
 
-CELERY_IMPORTS = ("account.tasks", "chat.tasks")
+CELERY_IMPORTS = ("account.tasks", "chat.tasks","application.tasks")
 CELERY_BROKER_URL = 'redis://redis_on_demand:6379/0'
 CELERY_RESULT_BACKEND = 'redis://redis_on_demand:6379/0'
 CELERY_ACCEPT_CONTENT = ['json']

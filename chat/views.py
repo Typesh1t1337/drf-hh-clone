@@ -65,7 +65,7 @@ class ChatListView(generics.ListAPIView):
     filter_backends = (DjangoFilterBackend,)
     def get_queryset(self):
         user = self.request.user
-        return super().get_queryset().filter(Q(first_user=user) | Q(second_user=user))
+        return super().get_queryset().filter(Q(first_user=user) | Q(second_user=user)).order_by('-last_message_date')
 
 
 class MessageListView(APIView):
@@ -73,10 +73,9 @@ class MessageListView(APIView):
 
     def get(self, request,chat_id,second_user):
         user = request.user
-        if Chat.objects.filter(Q(id=chat_id, second_user=user, first_user__username=second_user) | Q(id=chat_id,first_user=user,second_user__username=second_user)).exists():
+        if Chat.objects.filter(Q(id=chat_id, second_user=user, first_user__username=second_user) | Q(id=chat_id, first_user=user,second_user__username=second_user)).exists():
             not_read_messages = Message.objects.filter(chat_id=chat_id,is_read=False)
             not_read_messages.filter(receiver=user).update(is_read=True)
-
             all_messages = Message.objects.filter(chat_id=chat_id).order_by('message_date')
 
             return Response(MessageSerializer(all_messages, many=True).data,status=status.HTTP_200_OK)

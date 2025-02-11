@@ -9,6 +9,8 @@ class Chat(models.Model):
     last_message = models.TextField()
     last_message_date = models.DateTimeField(auto_now=True)
 
+
+
     class Meta:
         constraints = [
             models.UniqueConstraint(
@@ -31,5 +33,6 @@ class Message(models.Model):
     is_read = models.BooleanField(default=False)
     chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
     file = models.FileField(upload_to='messages', validators=[file_validation],null=True,blank=True)
+    job_link = models.ForeignKey('application.Job', on_delete=models.CASCADE, null=True, blank=True)
 
 

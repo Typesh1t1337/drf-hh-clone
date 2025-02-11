@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from application.filters import JobFilter, ApplyFilter
 from application.serializer import *
-
+from application.tasks import create_chat_and_message_task
 
 class CreateJobView(APIView):
     permission_classes = [IsAuthenticated]
@@ -101,6 +101,7 @@ class ApplyJobView(APIView):
                     )
 
                 assign = Assignments.objects.create(job=job, user=user, status="Applied", company=company)
+                create_chat_and_message_task.delay(job_id=job_id,first_user=user.username, second_user=company.username, last_message=f"I have assigned to {company.username}, to vacancy {job.title}")
 
                 assign.save()
 
@@ -128,7 +129,6 @@ class JobInfoView(APIView):
         response = {
 
         }
-
         try:
             job = Job.objects.get(pk=job_id)
             response['job_info'] = JobSerializer(job).data
