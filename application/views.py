@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from application.filters import JobFilter, ApplyFilter
 from application.serializer import *
-from application.tasks import create_chat_and_message_task
+from application.tasks import create_chat_and_message_task,approve_task,reject_task
 
 class CreateJobView(APIView):
     permission_classes = [IsAuthenticated]
@@ -81,6 +81,13 @@ class ApplyJobView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        if not user.is_verified:
+            return Response(
+                {
+                    "error": "Users email  is not verified"
+                },status=status.HTTP_403_FORBIDDEN
+            )
+
         serializer = ApplyJobSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -101,9 +108,15 @@ class ApplyJobView(APIView):
                     )
 
                 assign = Assignments.objects.create(job=job, user=user, status="Applied", company=company)
-                create_chat_and_message_task.delay(job_id=job_id,first_user=user.username, second_user=company.username, last_message=f"I have assigned to {company.username}, to vacancy {job.title}")
-
+                create_chat_and_message_task.delay(job_id=job_id, first_user=user.id, second_user=company.id, last_message=f"I have assigned to {company.username}, to vacancy {job.title}")
                 assign.save()
+
+                if not create_chat_and_message_task.result():
+                    return Response(
+                        {
+                            "error": "Job assigned failed"
+                        }, status=status.HTTP_404_NOT_FOUND
+                    )
 
                 return Response(
                     {
@@ -215,15 +228,20 @@ class JobApplyStatusView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
+class PaginateApplies(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = 'page_size'
 
 class RetrieveAllCompanyAppliesView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     filterset_class = ApplyFilter
     queryset = Assignments.objects.all()
     serializer_class = AppliedUserDetailSerializer
+    pagination_class = PaginateApplies
 
     def get_queryset(self, *args, **kwargs):
         user = self.request.user
+        return Assignments.objects.filter(company=user)
 
 
 class RetrieveCompanyVacanciesView(generics.ListAPIView):
@@ -234,6 +252,8 @@ class RetrieveCompanyVacanciesView(generics.ListAPIView):
     def get_queryset(self):
         user = self.request.user
         return Job.objects.filter(company=user)
+
+
 
 
 class DeleteVacancyView(APIView):
@@ -254,3 +274,86 @@ class DeleteVacancyView(APIView):
             return Response({
                 "error": "Job does not exist or you dont have access",
             })
+
+
+class ApproveApplyView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self,request):
+        company = request.user
+
+        if company.status == "User":
+            return Response(
+                {
+                    "error": "User have no permission to approve job",
+                },status=status.HTTP_403_FORBIDDEN
+            )
+
+        serializer = ApplyUserResultSerializer(data=request.data)
+
+        if serializer.is_valid():
+            job_id = serializer.validated_data['job_id']
+            user = serializer.validated_data['user']
+
+            job = Job.objects.get(pk=job_id)
+
+            if Assignments.objects.filter(job_id=job_id, user=user,status="Approved").exists():
+                return Response({
+                    "error": "Job already approved",
+                },status=status.HTTP_400_BAD_REQUEST)
+            else:
+                assignment = Assignments.objects.get(job_id=job_id, user=user)
+                assignment.status = "Approved"
+                assignment.save()
+
+                approve_task.delay(company_id=company.pk, user_id=user.pk, message=f"Hi,{user.first_name}, your assignment to {job.title} is now approved! Lets discuss about appointment to interview! All regards, {company.first_name} {company.last_name}, {company.username}!")
+
+
+                return Response({
+                    "message": "Job approved",
+                }, status=status.HTTP_200_OK)
+
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class RejectApplyView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self,request):
+        company = request.user
+
+        if company.status == "User":
+            return Response(
+                {
+                    "error": "User have no permission to reject job",
+                }, status=status.HTTP_403_FORBIDDEN
+            )
+
+        serializer = ApplyUserResultSerializer(data=request.data)
+
+        if serializer.is_valid():
+            job_id = serializer.validated_data['job_id']
+            user = serializer.validated_data['user']
+
+            job = Job.objects.get(pk=job_id)
+
+            if Assignments.objects.filter(job=job, user=user,status="Rejetcted").exists():
+                return Response({
+                    "error": "Job already rejected",
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            else:
+                assignment = Assignments.objects.get(job=job, user=user)
+
+                assignment.status = "Rejected"
+                assignment.save()
+                reject_task.delay(company_id=company.id,user_id=user.id,message=f"Hi,{user.first_name}, Unfortunately, your assignment to vacancy {job.title}, has been rejected,We will be glad to see your assignments to out other vacancies, All regards, {company.first_name} {company.last_name}, {company.username}!")
+
+                return Response({
+                    "message": "Job rejected",
+                },status=status.HTTP_200_OK)
+
+        return Response(
+            serializer.errors, status=status.HTTP_400_BAD_REQUEST
+        )

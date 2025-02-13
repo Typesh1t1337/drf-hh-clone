@@ -29,8 +29,11 @@ class RegisterCompanyVIew(APIView):
             token = serializer.get_token(user)
 
             #Support always first user, and regular user will be second user only
-            chat = Chat.objects.create(first_user_id=4, second_user=user)
-            chat.save()
+            chat = Chat.objects.create(first_user_id=4, second_user=user,last_message="Hi, welcome to Job Ondemand, ask question if you encouter with some issues, AI SUPPORT will respond you immediately.")
+
+            Message.objects.create(sender_id=4, receiver=user, message="Hi, welcome to Job Ondemand, ask question if you encouter with some issues, AI SUPPORT will respond you immediately.", chat=chat)
+
+
 
             response = Response({
                 "user": user.status
@@ -75,8 +78,12 @@ class RegisterUserView(APIView):
             token = serializer.get_token(user)
 
             # Support always first user, and regular user will be second user only
-            chat = Chat.objects.create(first_user_id=4, second_user=user)
-            chat.save()
+            chat = Chat.objects.create(first_user_id=4, second_user=user,
+                                       last_message=f"Hi {user.first_name}, welcome to Job Ondemand, ask question if you encouter with some issues, AI SUPPORT will respond you immediately.")
+
+            Message.objects.create(sender_id=4, receiver=user,
+                                   message=f"Hi {user.first_name}, welcome to Job Ondemand, ask question if you encouter with some issues, AI SUPPORT will respond you immediately.",
+                                   chat=chat)
 
             response = Response({
                 "user": user.status
@@ -171,24 +178,21 @@ class IsAuthenticatedView(APIView):
     def get(self, request):
         user = request.user
 
-        cache_key = f"user_info_{user.id}"
-        data = cache.get(cache_key)
 
-        if not data:
-            data = {
-                "user": {
-                    "status": user.status,
-                    "username": user.username,
-                    "isVerified": user.is_verified,
-                    "email": user.email,
-                    "first_name" : user.first_name,
-                }
+        data = {
+            "user": {
+                "status": user.status,
+                "username": user.username,
+                "isVerified": user.is_verified,
+                "email": user.email,
+                "first_name": user.first_name,
             }
+        }
 
-            cache.set(cache_key, data, 15*60)
 
 
-        return Response(data,  status=status.HTTP_200_OK)
+
+        return Response(data, status=status.HTTP_200_OK)
 
 
 

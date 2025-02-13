@@ -70,7 +70,12 @@ class AppliedUserDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Assignments
-        fields = ['status','job_id', 'job_title', 'user_username', 'user_email']
+        fields = ['status', 'job_id', 'job_title', 'user_username', 'user_email']
 
 
-
+class ApplyUserResultSerializer(serializers.ModelSerializer):
+    job_id = serializers.IntegerField()
+    user = serializers.SlugRelatedField(slug_field='username', queryset=get_user_model().objects.all(), required=True)
+    class Meta:
+        model = Assignments
+        fields = ['job_id', 'user']
