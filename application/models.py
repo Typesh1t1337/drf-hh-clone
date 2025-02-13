@@ -20,7 +20,7 @@ class Cities(models.Model):
 
 
 class Assignments(models.Model):
-    status = models.CharField(max_length=100,choices=[('Applied','Applied'), ('Approved', 'approved'), ('Rejected', 'rejected')])
+    status = models.CharField(max_length=100,choices=[('Applied', 'applied'), ('Approved', 'approved'), ('Rejected', 'rejected'),("Archived","archived")])
     user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE,related_name='user_assignments')
     job = models.ForeignKey(Job, on_delete=models.CASCADE)
     company = models.ForeignKey(get_user_model(), on_delete=models.CASCADE, null=True,related_name='companies')

@@ -16,5 +16,7 @@ urlpatterns = [
     path('job/company/vacancies/', RetrieveCompanyVacanciesView.as_view()),
     path('job/remove/<int:job_id>/',DeleteVacancyView.as_view()),
     path('job/assignments/retrieve/', RetrieveAllCompanyAppliesView.as_view()),
-    path('job/approve/', ApproveApplyView.as_view())
+    path('job/approve/', ApproveApplyView.as_view()),
+    path('job/reject/', RejectApplyView.as_view()),
+    path('job/archive/', ArchiveApplyView.as_view()),
 ]

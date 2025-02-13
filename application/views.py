@@ -300,7 +300,7 @@ class ApproveApplyView(APIView):
             if Assignments.objects.filter(job_id=job_id, user=user,status="Approved").exists():
                 return Response({
                     "error": "Job already approved",
-                },status=status.HTTP_400_BAD_REQUEST)
+                },status=status.HTTP_406_NOT_ACCEPTABLE)
             else:
                 assignment = Assignments.objects.get(job_id=job_id, user=user)
                 assignment.status = "Approved"
@@ -353,6 +353,47 @@ class RejectApplyView(APIView):
                 return Response({
                     "message": "Job rejected",
                 },status=status.HTTP_200_OK)
+
+        return Response(
+            serializer.errors, status=status.HTTP_400_BAD_REQUEST
+        )
+
+class ArchiveApplyView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        company = request.user
+
+        if company.status == "User":
+            return Response(
+                {
+                    "error": "User have no permission to reject job",
+                }, status=status.HTTP_403_FORBIDDEN
+            )
+
+        serializer = ApplyUserResultSerializer(data=request.data)
+
+        if serializer.is_valid():
+            job_id = serializer.validated_data['job_id']
+            user = serializer.validated_data['user']
+
+            job = Job.objects.get(pk=job_id)
+
+            if Assignments.objects.filter(job=job, user=user, status="Archived").exists():
+                return Response({
+                    "error": "Job already Archived",
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            else:
+                assignment = Assignments.objects.get(job=job, user=user)
+
+                assignment.status = "Archived"
+                assignment.save()
+
+
+                return Response({
+                    "message": "Job Archived",
+                }, status=status.HTTP_200_OK)
 
         return Response(
             serializer.errors, status=status.HTTP_400_BAD_REQUEST
