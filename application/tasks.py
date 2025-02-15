@@ -53,7 +53,7 @@ def reject_task(company_id:int, user_id:int,message:str):
     user = get_user_model().objects.get(pk=user_id)
 
     try:
-        chat =Chat.objects.filter(Q(first_user=company, second_user_id=user) | Q(first_user=user, second_user=company)).fisrt()
+        chat =Chat.objects.filter(Q(first_user=company, second_user_id=user) | Q(first_user=user, second_user=company)).first()
 
         if chat:
             chat.last_message = "Rejected Code:Lisi4ka"

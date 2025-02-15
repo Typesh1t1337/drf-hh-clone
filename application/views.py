@@ -146,6 +146,8 @@ class JobInfoView(APIView):
             job = Job.objects.get(pk=job_id)
             response['job_info'] = JobSerializer(job).data
 
+            response['job_info']['applied'] = Assignments.objects.filter(job_id=job_id).count()
+
             if request.user.is_authenticated:
                 user = request.user
 
@@ -380,6 +382,7 @@ class ArchiveApplyView(APIView):
             job = Job.objects.get(pk=job_id)
 
             if Assignments.objects.filter(job=job, user=user, status="Archived").exists():
+                print("Job already archived")
                 return Response({
                     "error": "Job already Archived",
                 }, status=status.HTTP_400_BAD_REQUEST)
@@ -398,3 +401,56 @@ class ArchiveApplyView(APIView):
         return Response(
             serializer.errors, status=status.HTTP_400_BAD_REQUEST
         )
+
+
+class DeleteFromAchieveView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self,request):
+        company = request.user
+
+        if company.status == "User":
+            return Response(
+                {
+                    "error": "User have no permission to delete job",
+                }, status=status.HTTP_403_FORBIDDEN
+            )
+
+        serializer = ApplyUserResultSerializer(data=request.data)
+
+        if serializer.is_valid():
+            job_id = serializer.validated_data['job_id']
+            user = serializer.validated_data['user']
+
+            job = Job.objects.get(pk=job_id)
+
+            assignment = Assignments.objects.filter(job=job, user=user, status="Archived").first()
+
+            if assignment:
+                assignment.delete()
+
+                return Response({
+                       "message": "Assignment deleted",
+                   },status=status.HTTP_200_OK)
+            else:
+                return Response({
+                    "error": "Job does not exist",
+                }, status=status.HTTP_404_NOT_FOUND)
+
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class PaginationForLanding(PageNumberPagination):
+    page_size = 9
+    page_size_query_param = 'page_size'
+
+
+
+class ListFirst20Jobs(generics.ListAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = JobSerializer
+    pagination_class = PaginationForLanding
+    ordering = ["-created_at"]
+    queryset = Job.objects.all()

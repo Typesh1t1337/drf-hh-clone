@@ -19,4 +19,6 @@ urlpatterns = [
     path('job/approve/', ApproveApplyView.as_view()),
     path('job/reject/', RejectApplyView.as_view()),
     path('job/archive/', ArchiveApplyView.as_view()),
+    path('job/delete/', DeleteFromAchieveView.as_view()),
+    path('job/list/landing/', ListFirst20Jobs.as_view())
 ]
