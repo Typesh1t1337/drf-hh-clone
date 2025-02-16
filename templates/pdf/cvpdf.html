@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+        }
+        h1 {
+            font-size: 36px;
+        }
+        .container {
+            display: flex;
+            justify-content: space-between;
+        }
+        .left {
+            width: 60%;
+        }
+        .right {
+            width: 30%;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #0044cc;
+        }
+        .contact {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ full_name }}</h1>
+    <div class="container">
+        <div class="left">
+            <p class="section-title">Job experience</p>
+            {% for exp in work_experiences %}
+                <p>exp</p>
+            {% endfor %}
+        </div>
+        <div class="right">
+            {% for add in adress %}
+                 <p class="contact">{{ add }}</p>
+            {% endfor %}
+            <p class="section-title">Skills</p>
+            {% for skill in skills %}
+                <p>{{ skill }}</p>
+            {% endfor %}
+            <p class="section-title">Languages</p>
+            {%for lang in languages %}
+                <p>{{ lang }}</p>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 
+from account.utils import generate_pdf_cv
 from jobondemand.settings import EMAIL_HOST_USER
 
 @shared_task
@@ -29,3 +30,13 @@ def send_confirmation_message(email: str, code: int) -> bool:
         print(e)
 
     return True
+
+
+@shared_task
+def create_pdf_cv_task(cv_id: int) -> bool:
+    pdf = generate_pdf_cv(cv_id)
+
+    if pdf:
+        return True
+    else:
+        return False

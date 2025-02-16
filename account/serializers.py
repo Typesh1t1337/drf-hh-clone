@@ -3,6 +3,7 @@ from rest_framework import serializers, status
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from account.models import CV
 from application.models import Job
 
 
@@ -116,7 +117,7 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
         fields = ('email', 'first_name', 'last_name', 'username', 'photo')
 
 
-class UploadCVSerializer(serializers.ModelSerializer):
+class CvSerializer(serializers.ModelSerializer):
     class Meta:
-        model = get_user_model()
-        fields = ('cv')
+        model = CV
+        fields = ['occupation', 'skill_sets', 'languages', 'address','work_experience']

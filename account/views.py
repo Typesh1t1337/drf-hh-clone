@@ -7,7 +7,7 @@ from django.views.decorators.cache import cache_page
 from rest_framework.parsers import MultiPartParser, FormParser
 
 from application.models import Job
-from .tasks import send_confirmation_message
+from .tasks import send_confirmation_message, create_pdf_cv_task
 from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.permissions import AllowAny,IsAuthenticated
@@ -18,6 +18,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 from chat.models import *
+
 
 class RegisterCompanyVIew(APIView):
     permission_classes = [AllowAny]
@@ -178,6 +179,14 @@ class IsAuthenticatedView(APIView):
 
     def get(self, request):
         user = request.user
+        pfp = None
+        cv = None
+
+        if user.photo:
+            pfp = f"http://127.0.0.1:8001/media/{user.photo}/"
+
+        if user.cv_file:
+            cv = f"http://127.0.0.1:8001/media/{user.cv_file}/"
 
 
         data = {
@@ -188,7 +197,8 @@ class IsAuthenticatedView(APIView):
                 "email": user.email,
                 "first_name": user.first_name,
                 "last_name": user.last_name,
-                "pfp": f"http://127.0.0.1:8001/media/{user.photo}/"
+                "pfp": pfp,
+                "cv": cv,
             }
         }
 
@@ -362,29 +372,35 @@ class EditProfileView(APIView):
 
 
 
-class AddOrEditCvView(APIView):
-    permission_classes = [IsAuthenticated]
+class AddCVView(APIView):
 
-    def put(self,request, *args, **kwargs):
+    def post(self, request):
         user = request.user
 
-        if user.status == "Company":
-            return Response(
-                {
-                    "status": "Company couldn't attach cv",
-                }, status=status.HTTP_400_BAD_REQUEST
-            )
-
-
-        serializer = UploadCVSerializer(data=request.data)
+        serializer = CvSerializer(data=request.data)
 
         if serializer.is_valid():
-            user_cv = serializer.validated_data['cv']
-            user.cv = user_cv
-            user.save(update_fields=['cv'])
+            occupation = serializer.validated_data['occupation']
+            skill_sets = serializer.validated_data['skill_sets']
+            language = serializer.validated_data['language']
+            address = serializer.validated_data['address']
+            work_experience = serializer.validated_data['work_experience']
 
-            return Response({
-                "success": "CV successfully updated",
-            }, status=status.HTTP_200_OK)
+            cv_obj = CV.objects.create(
+                cv_owner=user,
+                occupation=occupation,
+                skill_sets=skill_sets,
+                language=language,
+                address=address,
+                work_experience=work_experience,
+            )
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            create_pdf_cv_task(cv_obj.id)
+
+
+            return Response(
+                {
+                    "success": "cv created successfully"
+                }, status=status.HTTP_200_OK
+            )
+
