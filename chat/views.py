@@ -40,7 +40,7 @@ class SendMessageToSupportView(APIView):
             result = celery_result.result
 
             chat.last_message = result
-            chat.save(update_fields=['last_message'])
+            chat.save(update_fields=['last_message', 'last_message_date'])
 
             message = Message.objects.create(sender_id=4, receiver=user, message=result, chat=chat)
 
@@ -63,6 +63,7 @@ class ChatListView(generics.ListAPIView):
     serializer_class = ChatSerializer
     filterset_class = ChatFilter
     filter_backends = (DjangoFilterBackend,)
+    ordering_fieilds = ('-last_message_date')
     def get_queryset(self):
         user = self.request.user
         return super().get_queryset().filter(Q(first_user=user) | Q(second_user=user)).order_by('-last_message_date')

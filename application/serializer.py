@@ -25,10 +25,12 @@ class JobSerializer(serializers.ModelSerializer):
 class ListJobSerializer(serializers.ModelSerializer):
     location = serializers.CharField(source='location.name')
     company = serializers.CharField(source='company.username', read_only=True)
+    status = serializers.CharField(read_only=True)
+    chat_id = serializers.CharField(read_only=True)
 
     class Meta:
         model = Job
-        fields = ['id', 'title', 'description', 'location', 'category', 'salary', 'company']
+        fields = ['id', 'title', 'description', 'location', 'category', 'salary', 'company', 'status', 'chat_id']
 
 class ListAllCitiesSerializer(serializers.ModelSerializer):
     class Meta:

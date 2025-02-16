@@ -48,12 +48,12 @@ def approve_task(company_id:int, user_id:int,message:str):
     return True
 
 @shared_task
-def reject_task(company_id:int, user_id:int,message:str):
+def reject_task(company_id: int, user_id: int, message: str):
     company = get_user_model().objects.get(pk=company_id)
     user = get_user_model().objects.get(pk=user_id)
 
     try:
-        chat =Chat.objects.filter(Q(first_user=company, second_user_id=user) | Q(first_user=user, second_user=company)).first()
+        chat = Chat.objects.filter(Q(first_user=company, second_user_id=user) | Q(first_user=user, second_user=company)).first()
 
         if chat:
             chat.last_message = "Rejected Code:Lisi4ka"

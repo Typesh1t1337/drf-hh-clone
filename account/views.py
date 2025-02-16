@@ -4,6 +4,7 @@ from django.contrib.auth import authenticate as auth_authenticate, logout
 from django.core.cache import cache
 from django.utils.timezone import now
 from django.views.decorators.cache import cache_page
+from rest_framework.parsers import MultiPartParser, FormParser
 
 from application.models import Job
 from .tasks import send_confirmation_message
@@ -186,6 +187,8 @@ class IsAuthenticatedView(APIView):
                 "isVerified": user.is_verified,
                 "email": user.email,
                 "first_name": user.first_name,
+                "last_name": user.last_name,
+                "pfp": f"http://127.0.0.1:8001/media/{user.photo}/"
             }
         }
 
@@ -339,3 +342,49 @@ class CompanyVacanciesView(APIView):
 
 
 
+
+class EditProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = (MultiPartParser, FormParser)
+
+    def put(self, request,*args, **kwargs):
+        user = request.user
+
+        serializer = UpdateProfileSerializer(user, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                "success":"Profile updated successfully"
+            }, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class AddOrEditCvView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self,request, *args, **kwargs):
+        user = request.user
+
+        if user.status == "Company":
+            return Response(
+                {
+                    "status": "Company couldn't attach cv",
+                }, status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+        serializer = UploadCVSerializer(data=request.data)
+
+        if serializer.is_valid():
+            user_cv = serializer.validated_data['cv']
+            user.cv = user_cv
+            user.save(update_fields=['cv'])
+
+            return Response({
+                "success": "CV successfully updated",
+            }, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

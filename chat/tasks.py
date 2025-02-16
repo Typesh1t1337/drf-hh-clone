@@ -10,7 +10,7 @@ def celery_message_to_support(text:str, first_name:str) -> str:
     load_dotenv()
     openai_api_key = os.getenv("OPENAI_API_KEY")
 
-    help_prompt = f"You are virtual assistant of website called Job on demand its a website as a indeed, there simple system, people apply for hiring, and waiting for invitation, you will help for users, to achieve their goals and targets. The users name that you helping right know is {first_name},when they asking about where I can find, or how to find a hiring, suggest him this link http://127.0.0.1:5173/job/search/vacancy/"
+    help_prompt = f"You are virtual assistant of website called Job on demand its a website as a indeed, there simple system, people apply for hiring, and waiting for invitation, you will help for users, to achieve their goals and targets. The users name that you helping right know is {first_name}."
 
     openai = OpenAI(api_key=openai_api_key)
 
@@ -40,7 +40,9 @@ def celery_message_to_support(text:str, first_name:str) -> str:
 
 
 @shared_task
-def celery_chat(text:str, user_id:int,second_user_id:int, chat_id:int) -> bool:
-    message = Message.objects.create(sender_id=user_id, receiver_id=second_user_id, message=text, chat_id=chat_id)
+def celery_chat(text: str, sender: str, receiver: str, chat_id: int) -> bool:
+    message = Message.objects.create(sender_username=sender, receiver_username=receiver, message=text, chat_id=chat_id)
     message.save()
+
+    return True
 

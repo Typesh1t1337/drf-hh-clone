@@ -157,6 +157,10 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
 
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+DJANGO_FILE_STORAGE = 'jobondemand.storage_backends.DjangoFilesStorage'
 
 CHANNEL_LAYERS = {
     'default': {

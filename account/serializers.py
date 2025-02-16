@@ -101,10 +101,22 @@ class VerifyEmailSerializer(serializers.Serializer):
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
-        fields = ('email', 'first_name', 'last_name', 'status', 'username')
+        fields = ('email', 'first_name', 'last_name', 'status', 'username', 'photo')
 
 
 class CompanyVacanciesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Job
         fields = ('title','salary', 'location','pk')
+
+
+class UpdateProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = get_user_model()
+        fields = ('email', 'first_name', 'last_name', 'username', 'photo')
+
+
+class UploadCVSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = get_user_model()
+        fields = ('cv')

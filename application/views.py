@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.db.models import OuterRef, Exists, Subquery
 from rest_framework import filters, status
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
@@ -9,6 +10,8 @@ from rest_framework.views import APIView
 from application.filters import JobFilter, ApplyFilter
 from application.serializer import *
 from application.tasks import create_chat_and_message_task,approve_task,reject_task
+from chat.models import Chat
+
 
 class CreateJobView(APIView):
     permission_classes = [IsAuthenticated]
@@ -53,6 +56,18 @@ class ListJobsView(generics.ListAPIView):
     pagination_class = PaginationJob
     queryset = Job.objects.all()
     filterset_class = JobFilter
+
+    def get_queryset(self):
+        queryset = Job.objects.all()
+        user = self.request.user
+
+        if user.is_authenticated:
+            subquery = Assignments.objects.filter(user=user,job=OuterRef('pk')).values("status")[:1]
+            chat_subquery = Chat.objects.filter(first_user=user, second_user=OuterRef('company')).values("id")[:1]
+
+            return queryset.annotate(status=Subquery(subquery), chat_id=Subquery(chat_subquery))
+
+        return queryset
 
 
 class ListAllCitiesView(generics.ListAPIView):
@@ -111,12 +126,6 @@ class ApplyJobView(APIView):
                 create_chat_and_message_task.delay(job_id=job_id, first_user=user.id, second_user=company.id, last_message=f"I have assigned to {company.username}, to vacancy {job.title}")
                 assign.save()
 
-                if not create_chat_and_message_task.result():
-                    return Response(
-                        {
-                            "error": "Job assigned failed"
-                        }, status=status.HTTP_404_NOT_FOUND
-                    )
 
                 return Response(
                     {
