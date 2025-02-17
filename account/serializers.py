@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from account.models import CV
-from application.models import Job
+from application.models import Job, Categories
 
 
 class LoginSerializer(serializers.Serializer):
@@ -118,6 +118,11 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
 
 
 class CvSerializer(serializers.ModelSerializer):
+    occupation = serializers.SlugRelatedField(
+        queryset=Categories.objects.all(),
+        slug_field='name'
+    )
+
     class Meta:
         model = CV
-        fields = ['occupation', 'skill_sets', 'languages', 'address','work_experience']
+        fields = ['occupation', 'skill_sets', 'languages', 'address', 'work_experience']

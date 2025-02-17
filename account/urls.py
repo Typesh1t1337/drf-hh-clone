@@ -14,5 +14,5 @@ urlpatterns = [
     path('user/info/<str:username>/',RetrieveUserView.as_view(), name='user_info'),
     path('company/vacancies/<str:username>/', CompanyVacanciesView.as_view()),
     path('profile/edit/',EditProfileView.as_view(), name='update_profile'),
-    path('profile/upload/cv/', AddOrEditCvView.as_view(), name='upload_cv'),
+    path('profile/upload/cv/', AddCVView.as_view(), name='upload_cv'),
 ]

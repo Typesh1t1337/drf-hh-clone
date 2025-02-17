@@ -10,7 +10,7 @@ from application.models import Job
 from .tasks import send_confirmation_message, create_pdf_cv_task
 from django.http import JsonResponse
 from rest_framework import status
-from rest_framework.permissions import AllowAny,IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import *
@@ -18,6 +18,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import ensure_csrf_cookie
 from chat.models import *
+
 
 
 class RegisterCompanyVIew(APIView):
@@ -382,7 +383,7 @@ class AddCVView(APIView):
         if serializer.is_valid():
             occupation = serializer.validated_data['occupation']
             skill_sets = serializer.validated_data['skill_sets']
-            language = serializer.validated_data['language']
+            language = serializer.validated_data['languages']
             address = serializer.validated_data['address']
             work_experience = serializer.validated_data['work_experience']
 
@@ -390,12 +391,12 @@ class AddCVView(APIView):
                 cv_owner=user,
                 occupation=occupation,
                 skill_sets=skill_sets,
-                language=language,
+                languages=language,
                 address=address,
                 work_experience=work_experience,
             )
 
-            create_pdf_cv_task(cv_obj.id)
+            create_pdf_cv_task.delay(cv_obj.id)
 
 
             return Response(
@@ -403,4 +404,8 @@ class AddCVView(APIView):
                     "success": "cv created successfully"
                 }, status=status.HTTP_200_OK
             )
+
+        return Response(
+            serializer.errors, status=status.HTTP_400_BAD_REQUEST
+        )
 

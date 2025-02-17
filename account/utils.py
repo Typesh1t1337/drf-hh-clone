@@ -13,9 +13,9 @@ def generate_pdf_cv(cv_id: int) -> bool:
 
 
     context = {
-        "full_name": cv_obj.user.first_name + " " + cv_obj.user.last_name,
+        "full_name": cv_obj.cv_owner.first_name + " " + cv_obj.cv_owner.last_name,
         "work_experiences": cv_obj.work_experience.split("(*)"),
-        "address": cv_obj.address.split("(*)"),
+        "address": cv_obj.address,
         "skills": cv_obj.skill_sets.split("(*)"),
         "languages": cv_obj.languages.split("(*)"),
     }
@@ -26,10 +26,10 @@ def generate_pdf_cv(cv_id: int) -> bool:
     HTML(string=html_string).write_pdf(target=pdf_file)
     pdf_file.seek(0)
 
-    pdf_content =ContentFile(pdf_file.getvalue(), name=f"user_{cv_obj.user.username}_cv.pdf")
+    pdf_content =ContentFile(pdf_file.getvalue(), name=f"user_{cv_obj.cv_owner.username}_cv.pdf")
 
     try:
-        user = get_user_model().objects.get(pk=cv_obj.user.id)
+        user = get_user_model().objects.get(username=cv_obj.cv_owner.username)
         user.cv_file.save(pdf_content.name, pdf_content, save=True)
 
         return True
