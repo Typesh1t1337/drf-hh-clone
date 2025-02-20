@@ -30,3 +30,8 @@ class Assignments(models.Model):
 
 
 
+
+class Skills(models.Model):
+    name = models.CharField(max_length=100)
+    related_skills = models.ForeignKey(Categories, on_delete=models.CASCADE)
+

@@ -374,7 +374,7 @@ class EditProfileView(APIView):
 
 
 class AddCVView(APIView):
-
+    permission_classes = [IsAuthenticated]
     def post(self, request):
         user = request.user
 
@@ -408,4 +408,6 @@ class AddCVView(APIView):
         return Response(
             serializer.errors, status=status.HTTP_400_BAD_REQUEST
         )
+
+
 

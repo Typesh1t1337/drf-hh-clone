@@ -20,5 +20,7 @@ urlpatterns = [
     path('job/reject/', RejectApplyView.as_view()),
     path('job/archive/', ArchiveApplyView.as_view()),
     path('job/delete/', DeleteFromAchieveView.as_view()),
-    path('job/list/landing/', ListFirst20Jobs.as_view())
+    path('job/list/landing/', ListFirst20Jobs.as_view()),
+    path('job/list/skills/', ListAllSkills.as_view()),
+    path('address/<str:city>/', AddressGoogleCallbackView.as_view())
 ]

@@ -7,11 +7,12 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from application.filters import JobFilter, ApplyFilter
+from application.filters import JobFilter, ApplyFilter, SkillsFilter
 from application.serializer import *
 from application.tasks import create_chat_and_message_task,approve_task,reject_task
 from chat.models import Chat
-
+from application.tasks import request_google_task
+from celery.result import AsyncResult
 
 class CreateJobView(APIView):
     permission_classes = [IsAuthenticated]
@@ -463,3 +464,34 @@ class ListFirst20Jobs(generics.ListAPIView):
     pagination_class = PaginationForLanding
     ordering = ["-created_at"]
     queryset = Job.objects.all()
+
+
+
+class ListAllSkills(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = SkillsSerializer
+    queryset = Skills.objects.all()
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = SkillsFilter
+
+
+class AddressGoogleCallbackView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request, city):
+        task = request_google_task.apply_async(args=[city])
+        result = AsyncResult(task.id)
+
+        if result:
+            task_result = result.get()
+
+            if not task_result:
+                return Response({
+                    "error": "Google Task Failed",
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            return Response(
+                {
+                    "result": task_result,
+                },status=status.HTTP_200_OK
+            )

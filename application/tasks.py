@@ -1,3 +1,5 @@
+import os
+
 from celery import shared_task
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
@@ -5,7 +7,8 @@ from django.db.models import Q
 
 from application.models import Job
 from chat.models import Chat, Message
-
+import requests
+from dotenv import load_dotenv
 
 
 @shared_task
@@ -66,3 +69,18 @@ def reject_task(company_id: int, user_id: int, message: str):
         return False
 
     return True
+
+
+@shared_task
+def request_google_task(city: str):
+    load_dotenv()
+    API_KEY = os.getenv("GOOGLE_API_KEY")
+
+    response = requests.get(f"https://maps.googleapis.com/maps/api/place/autocomplete/json?input={city}&key={API_KEY}")
+    if(response.status_code == 200):
+        data = response.json()
+        return data["predictions"]
+    return {
+        "error": "Invalid City"
+    }
+

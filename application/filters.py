@@ -22,3 +22,8 @@ class JobFilter(django_filters.FilterSet):
 
 class ApplyFilter(django_filters.FilterSet):
     status = django_filters.CharFilter(field_name='status', lookup_expr='icontains', label="Search Status")
+
+
+
+class SkillsFilter(django_filters.FilterSet):
+    related_names = django_filters.CharFilter(field_name='related_skills__name', lookup_expr='icontains', label="Search Related Names")

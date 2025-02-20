@@ -81,3 +81,11 @@ class ApplyUserResultSerializer(serializers.ModelSerializer):
     class Meta:
         model = Assignments
         fields = ['job_id', 'user']
+
+
+
+class SkillsSerializer(serializers.ModelSerializer):
+    related_skills = serializers.CharField(source='related_skills.name')
+    class Meta:
+        model = Skills
+        fields = ['name','related_skills']
