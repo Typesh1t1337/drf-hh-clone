@@ -10,7 +10,8 @@ from chat.models import Chat
 from .filters import ChatFilter
 from .serializer import *
 from chat.tasks import *
-
+from .middleware import *
+from .middleware import *
 class SendMessageToSupportView(APIView):
     permission_classes = [IsAuthenticated]
     def post(self, request):
@@ -74,12 +75,25 @@ class MessageListView(APIView):
 
     def get(self, request,chat_id,second_user):
         user = request.user
+
+        result = {
+
+        }
         if Chat.objects.filter(Q(id=chat_id, second_user=user, first_user__username=second_user) | Q(id=chat_id, first_user=user,second_user__username=second_user)).exists():
             not_read_messages = Message.objects.filter(chat_id=chat_id,is_read=False)
             not_read_messages.filter(receiver=user).update(is_read=True)
             all_messages = Message.objects.filter(chat_id=chat_id).order_by('message_date')
 
-            return Response(MessageSerializer(all_messages, many=True).data,status=status.HTTP_200_OK)
+            serializer = MessageSerializer(all_messages, many=True)
+
+            result['messages'] = serializer.data
+
+            second_user_obj = get_user_model().objects.get(username=second_user)
+
+            if second_user_obj:
+                result['is_online'] = check_user_online(second_user_obj.pk)
+
+            return Response(result, status=status.HTTP_200_OK)
         else:
             return Response({
                 "error": "Chat with this id does not exist"

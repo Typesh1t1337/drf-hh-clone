@@ -120,9 +120,11 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
 class CvSerializer(serializers.ModelSerializer):
     occupation = serializers.SlugRelatedField(
         queryset=Categories.objects.all(),
-        slug_field='name'
+        slug_field='name',
     )
 
     class Meta:
         model = CV
         fields = ['occupation', 'skill_sets', 'languages', 'address', 'work_experience']
+
+

@@ -44,6 +44,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "corsheaders.middleware.CorsMiddleware",
+    'chat.middleware.UpdateOnlineMiddleware',
 ]
 
 ROOT_URLCONF = "jobondemand.urls"

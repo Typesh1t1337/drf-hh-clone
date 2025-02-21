@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate as auth_authenticate, logout
 from django.core.cache import cache
 from django.utils.timezone import now
 from django.views.decorators.cache import cache_page
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
 from application.models import Job
 from .tasks import send_confirmation_message, create_pdf_cv_task
@@ -358,7 +358,7 @@ class EditProfileView(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes = (MultiPartParser, FormParser)
 
-    def put(self, request,*args, **kwargs):
+    def put(self, request, *args, **kwargs):
         user = request.user
 
         serializer = UpdateProfileSerializer(user, data=request.data, partial=True)
@@ -410,4 +410,29 @@ class AddCVView(APIView):
         )
 
 
+class EditCVView(APIView):
+    permission_classes = [IsAuthenticated]
+    def put(self,request, *args, **kwargs):
+        user = request.user
+
+        cv_obj = CV.objects.filter(cv_owner=user).first()
+
+        if not cv_obj:
+            return Response({
+                "status": "CV not found",
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = CvSerializer(cv_obj, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+
+            create_pdf_cv_task.delay(cv_obj.id)
+
+            return Response({
+                "success": "CV updated successfully"
+            }, status=status.HTTP_200_OK)
+
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
