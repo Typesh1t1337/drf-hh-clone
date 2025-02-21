@@ -2,11 +2,12 @@ import random
 
 from django.contrib.auth import authenticate as auth_authenticate, logout
 from django.core.cache import cache
+from django.db.models import Count
 from django.utils.timezone import now
 from django.views.decorators.cache import cache_page
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
-from application.models import Job
+from application.models import Job, Assignments
 from .tasks import send_confirmation_message, create_pdf_cv_task
 from django.http import JsonResponse
 from rest_framework import status
@@ -436,3 +437,63 @@ class EditCVView(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+
+class RetrieveCVView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self,request, username):
+        user = get_user_model().objects.filter(username=username).first()
+
+        result = {
+
+        }
+
+        if not user:
+            return Response({
+                "status": "User does not exist",
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        instant_user = request.user
+        if instant_user != user and instant_user.status == "Company":
+            cv_obj = CV.objects.filter(cv_owner=user).first()
+
+            if cv_obj:
+                result['cv'] = CvSerializer(cv_obj).data
+                return Response(result, status=status.HTTP_200_OK)
+
+            else:
+                return Response({
+                    "error": "CV not found",
+                }, status=status.HTTP_404_NOT_FOUND)
+
+        if instant_user == user:
+            cv_obj = CV.objects.filter(cv_owner=user).first()
+
+            if cv_obj:
+                assignment = Assignments.objects.filter(user=instant_user).values('status').annotate(count=Count('status'))
+                result = {
+                    "cv": CvSerializer(cv_obj).data,
+                    "assignments": {"applied": 0, "rejected": 0, "accepted": 0}
+                }
+
+                status_mapping = {
+                    "Applied": "applied",
+                    "Rejected": "rejected",
+                }
+
+
+                for entry in assignment:
+                    count = entry['count']
+                    assign_status = entry['status']
+
+                    key = status_mapping.get(assign_status, "accepted")
+                    result["assignments"][key] = count
+
+
+                return Response(result, status=status.HTTP_200_OK)
+
+        else:
+            return Response({
+                "error": "You are not allowed to access this page",
+            }, status=status.HTTP_403_FORBIDDEN)

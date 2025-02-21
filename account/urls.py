@@ -19,4 +19,5 @@ urlpatterns = [
     path('profile/edit/',EditProfileView.as_view(), name='update_profile'),
     path('profile/upload/cv/', AddCVView.as_view(), name='upload_cv'),
     path('profile/edit/cv/', EditCVView.as_view(), name='update_profile'),
+    path('profile/cv/<str:username>/', RetrieveCVView.as_view(), name='update_profile'),
 ]

@@ -122,9 +122,9 @@ class CvSerializer(serializers.ModelSerializer):
         queryset=Categories.objects.all(),
         slug_field='name',
     )
+    cv_owner = serializers.CharField(source='cv_owner_username', read_only=True)
 
     class Meta:
         model = CV
-        fields = ['occupation', 'skill_sets', 'languages', 'address', 'work_experience']
-
+        fields = ['occupation', 'skill_sets', 'languages', 'address', 'work_experience', 'cv_owner']
 
