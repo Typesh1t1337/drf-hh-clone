@@ -1,5 +1,8 @@
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.db.models import OuterRef, Exists, Subquery
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework import filters, status
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
@@ -76,12 +79,19 @@ class ListAllCitiesView(generics.ListAPIView):
     serializer_class = ListAllCitiesSerializer
     queryset = Cities.objects.all()
 
+    @method_decorator(cache_page(timeout=None))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
 
 
 class ListAllCategoriesView(generics.ListAPIView):
     permission_classes = [AllowAny]
     serializer_class = ListAllCategoriesSerializer
     queryset = Categories.objects.all()
+
+    @method_decorator(cache_page(timeout=None))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
 
 
 class ApplyJobView(APIView):
@@ -152,6 +162,13 @@ class JobInfoView(APIView):
         response = {
 
         }
+
+        cache_key = f"job_{job_id}"
+        cache_data = cache.get(cache_key)
+
+        if cache_data:
+            return Response(cache_data, status=status.HTTP_200_OK)
+
         try:
             job = Job.objects.get(pk=job_id)
             response['job_info'] = JobSerializer(job).data
@@ -170,6 +187,7 @@ class JobInfoView(APIView):
                 else:
                     response['status'] = "Not applied"
 
+            cache.set(response, cache_key, 600)
 
             return Response(response, status=status.HTTP_200_OK)
 
@@ -465,6 +483,9 @@ class ListFirst20Jobs(generics.ListAPIView):
     ordering = ["-created_at"]
     queryset = Job.objects.all()
 
+    @method_decorator(cache_page(60 * 10))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
 
 
 class ListAllSkills(generics.ListAPIView):
@@ -473,6 +494,10 @@ class ListAllSkills(generics.ListAPIView):
     queryset = Skills.objects.all()
     filter_backends = [DjangoFilterBackend]
     filterset_class = SkillsFilter
+
+    @method_decorator(cache_page(60 * 10))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
 
 
 class AddressGoogleCallbackView(APIView):

@@ -181,15 +181,16 @@ class IsAuthenticatedView(APIView):
 
     def get(self, request):
         user = request.user
-        pfp = None
-        cv = None
+        cache_key = f"user_{user.id}"
+        cached_data = cache.get(cache_key)
 
-        if user.photo:
-            pfp = f"http://127.0.0.1:8001/media/{user.photo}/"
+        if cached_data:
+            return Response(cached_data, status=status.HTTP_200_OK)
 
-        if user.cv_file:
-            cv = f"http://127.0.0.1:8001/media/{user.cv_file}/"
 
+
+        pfp = request.build_absolute_uri(user.photo.url) if user.photo else None
+        cv = request.build_absolute_uri(user.cv_file) if user.cv_file else None
 
         data = {
             "user": {
@@ -204,8 +205,7 @@ class IsAuthenticatedView(APIView):
             }
         }
 
-
-
+        cache.set(cache_key, data, timeout=600)
 
         return Response(data, status=status.HTTP_200_OK)
 
@@ -319,11 +319,20 @@ class LogoutAPIView(APIView):
 
 class RetrieveUserView(APIView):
     permission_classes = [AllowAny]
-    def get(self, request,username):
-        if(get_user_model().objects.filter(username=username).exists()):
-            user = get_user_model().objects.get(username=username)
 
+    def get(self, request, username):
+        cache_key = f"user_{username}"
+        cached_data = cache.get(cache_key)
+
+        if cached_data:
+            return Response(cached_data, status=status.HTTP_200_OK)
+
+        user = get_user_model().objects.filter(username=username).first()
+
+        if user:
             serializer = ProfileSerializer(user).data
+
+            cache.set(cache_key, serializer, timeout=600)
 
             return Response(serializer,status=status.HTTP_200_OK)
         else:
@@ -357,18 +366,24 @@ class CompanyVacanciesView(APIView):
 
 class EditProfileView(APIView):
     permission_classes = [IsAuthenticated]
-    parser_classes = (MultiPartParser, FormParser)
+    parser_classes = (MultiPartParser, FormParser,JSONParser)
 
     def put(self, request, *args, **kwargs):
         user = request.user
+        old_username = user.username
 
         serializer = UpdateProfileSerializer(user, data=request.data, partial=True)
 
         if serializer.is_valid():
-            serializer.save()
+            if any(request.data.values()):
+                cache.delete(f"user_{old_username}")
+                serializer.save()
+
             return Response({
-                "success":"Profile updated successfully"
+                "success": "Profile updated successfully"
             }, status=status.HTTP_200_OK)
+
+
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -449,6 +464,12 @@ class RetrieveCVView(APIView):
 
         }
 
+        user_info = {
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "cv_link": user.cv_file.url,
+        }
+
         if not user:
             return Response({
                 "status": "User does not exist",
@@ -460,6 +481,7 @@ class RetrieveCVView(APIView):
 
             if cv_obj:
                 result['cv'] = CvSerializer(cv_obj).data
+                result["user_info"] = user_info
                 return Response(result, status=status.HTTP_200_OK)
 
             else:
@@ -474,6 +496,7 @@ class RetrieveCVView(APIView):
                 assignment = Assignments.objects.filter(user=instant_user).values('status').annotate(count=Count('status'))
                 result = {
                     "cv": CvSerializer(cv_obj).data,
+                    "user_info": user_info,
                     "assignments": {"applied": 0, "rejected": 0, "accepted": 0}
                 }
 

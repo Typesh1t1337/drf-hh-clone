@@ -4,9 +4,12 @@ from django.core.cache import cache
 from django.contrib.auth import get_user_model
 
 
-User = get_user_model()
 
-@receiver(post_save, sender=User)
+@receiver(post_save, sender=None)
 def clear_user_cache(sender, instance, **kwargs):
-    cache.delete(f"user_info_{instance.pk}")
+    user = get_user_model()
+    if isinstance(instance, user):
+        cache.delete(f"user_{instance.pk}")
+
+
 
