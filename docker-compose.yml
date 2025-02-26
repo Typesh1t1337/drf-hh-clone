@@ -22,6 +22,20 @@ services:
       POSTGRES_DB: ondemand
     networks:
       - default
+
+  minIO:
+    container_name: minIo_on_demand
+    image: quay.io/minio/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ArnurZ
+      MINIO_ROOT_PASSWORD: ondemand_123
+    command: server /data --console-address ":9001"
+    volumes:
+      - minIO_data:/data
+
   backend:
     env_file:
       - .env
@@ -58,6 +72,7 @@ services:
 volumes:
   redis_data:
   postgres_data:
+  minIO_data:
 
 networks:
   default:

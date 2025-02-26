@@ -1,5 +1,6 @@
 import random
 
+from django.conf import settings
 from django.contrib.auth import authenticate as auth_authenticate, logout
 from django.core.cache import cache
 from django.db.models import Count
@@ -139,7 +140,10 @@ class LoginView(APIView):
             refresh_token = str(refresh)
             access = str(refresh.access_token)
 
-            response = JsonResponse({"status": user.status})
+            response = JsonResponse({"status": user.status,
+                                     "access": access,
+                                     "refresh": refresh_token
+                                     })
 
             response.set_cookie(
                 key='access',
@@ -189,7 +193,7 @@ class IsAuthenticatedView(APIView):
 
 
 
-        pfp = request.build_absolute_uri(user.photo.url) if user.photo else None
+        pfp =f"{settings.MEDIA_URL}{user.photo}" if user.photo else None
         cv = request.build_absolute_uri(user.cv_file) if user.cv_file else None
 
         data = {

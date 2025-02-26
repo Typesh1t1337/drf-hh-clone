@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_celery_results',
     'drf_yasg',
+    "storages",
 ]
 
 MIDDLEWARE = [
@@ -159,8 +160,6 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
 
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
 
 DJANGO_FILE_STORAGE = 'jobondemand.storage_backends.DjangoFilesStorage'
 
@@ -211,3 +210,19 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "offerkz.codesender@gmail.com"
 EMAIL_HOST_PASSWORD = "unra xahx pnzv jgrx"
+
+AWS_S3_ENDPOINT_URL = "http://172.22.0.3:9000"
+AWS_STORAGE_BUCKET_NAME = "media"
+AWS_QUERYSTRING_AUTH = False
+AWS_S3_BUCKET_AUTH = False
+AWS_S3_USE_HTTPS = False
+AWS_ACCESS_KEY_ID = "ArnurZ"
+AWS_SECRET_ACCESS_KEY = "ondemand_123"
+AWS_S3_ADDRESSING_STYLE = "path"
+AWS_FILE_OVERWRITE = False
+AWS_S3_SECURE_URLS = False
+AWS_S3_CUSTOM_DOMAIN = "http://127.0.0.1:9000"
+
+
+DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+MEDIA_URL = f"{AWS_S3_CUSTOM_DOMAIN}/{AWS_STORAGE_BUCKET_NAME}/"
