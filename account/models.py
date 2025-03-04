@@ -19,7 +19,7 @@ class User(AbstractUser):
     is_verified = models.BooleanField(default=False)
     cv_file = models.FileField(upload_to=cv_upload_to, blank=True,null=True, validators=[FileExtensionValidator(['txt', 'docx', 'pdf', 'png', 'jpg', 'jpeg'])], storage=CustomStorage())
     verification = models.IntegerField(default=0)
-    last_verification = models.DateTimeField(null=True,blank=True)
+    last_verification = models.DateTimeField(null=True, blank=True)
     cv_profile = models.OneToOneField('CV', null=True,on_delete=models.SET_NULL)
 
 

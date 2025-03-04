@@ -53,7 +53,7 @@ class PaginationJob(PageNumberPagination):
 
 class ListJobsView(generics.ListAPIView):
     permission_classes = [AllowAny]
-    filter_backends = [DjangoFilterBackend,filters.OrderingFilter,filters.SearchFilter]
+    filter_backends = [DjangoFilterBackend,filters.OrderingFilter, filters.SearchFilter]
     serializer_class = ListJobSerializer
     ordering = ['-created_at']
     ordering_fields = ['created_at', 'salary']

@@ -11,6 +11,10 @@ all run comands in DockerFile
 
 #clone
 
+minIO link http://127.0.0.1:9000
+
+
 git clone git@github.com:Typesh1t1337/drf-hh-clone.git
+
 
 
